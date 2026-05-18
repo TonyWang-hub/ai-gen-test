@@ -1,0 +1,41 @@
+{
+  "name": "aigen-test",
+  "version": "0.1.0",
+  "description": "ESLint for AI-generated tests — analyze test quality across multiple dimensions",
+  "bin": {
+    "aigen-test": "./dist/bin/aigen-test.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src/",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "ai-testing",
+    "test-quality",
+    "ai-generated-tests",
+    "lint",
+    "static-analysis",
+    "testing"
+  ],
+  "license": "MIT",
+  "files": [
+    "dist/"
+  ],
+  "dependencies": {
+    "@typescript-eslint/parser": "^8.0.0",
+    "@typescript-eslint/typescript-estree": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0",
+    "tsx": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
