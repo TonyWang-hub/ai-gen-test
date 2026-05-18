@@ -4,6 +4,7 @@ import { runDetectors } from '../src/core/runner';
 import { Detector } from '../src/core/types';
 import { AigenTestConfig, loadConfig } from '../src/core/config';
 import { generateTerminalReport, generateJSONReport, generateSARIFReport, generateSummary } from '../src/cli/reporter';
+import { generateHTMLReport } from '../src/cli/html-reporter';
 
 // Import detectors
 import { AssertionStrengthDetector } from '../src/detectors/shared/assertion-strength';
@@ -82,6 +83,10 @@ function main(): void {
     else { console.log(output); }
   } else if (format === 'sarif') {
     const output = generateSARIFReport(results, summary);
+    if (config.output) { require('fs').writeFileSync(config.output, output); }
+    else { console.log(output); }
+  } else if (format === 'html') {
+    const output = generateHTMLReport(results, summary);
     if (config.output) { require('fs').writeFileSync(config.output, output); }
     else { console.log(output); }
   } else {
