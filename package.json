@@ -27,13 +27,15 @@
   ],
   "dependencies": {
     "@typescript-eslint/parser": "^8.0.0",
-    "@typescript-eslint/typescript-estree": "^8.0.0"
+    "@typescript-eslint/typescript-estree": "^8.0.0",
+    "tree-sitter-wasm-prebuilt": "^0.0.3",
+    "web-tree-sitter": "^0.26.8"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "tsx": "^4.0.0",
     "typescript": "^5.7.0",
-    "vitest": "^3.0.0",
-    "tsx": "^4.0.0"
+    "vitest": "^3.0.0"
   },
   "engines": {
     "node": ">=18.0.0"

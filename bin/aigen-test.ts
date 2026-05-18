@@ -1,18 +1,23 @@
 #!/usr/bin/env node
 import { scan } from '../src/core/scanner';
 import { runDetectors } from '../src/core/runner';
-import { Detector } from '../src/core/types';
+import { runPythonDetectors } from '../src/core/python-runner';
+import { Detector, TestFileResult } from '../src/core/types';
 import { AigenTestConfig, loadConfig } from '../src/core/config';
 import { generateTerminalReport, generateJSONReport, generateSARIFReport, generateSummary } from '../src/cli/reporter';
 import { generateHTMLReport } from '../src/cli/html-reporter';
 
-// Import detectors
+// Import JS/TS detectors
 import { AssertionStrengthDetector } from '../src/detectors/shared/assertion-strength';
 import { tautologyDetector } from '../src/detectors/shared/tautology';
 import { aiPatternsDetector } from '../src/detectors/js/ai-patterns';
 import overMockingDetector from '../src/detectors/js/over-mocking';
 import { testSmellsDetector } from '../src/detectors/shared/test-smells';
 import { readabilityDetector } from '../src/detectors/shared/readability';
+
+function isPythonFile(filePath: string): boolean {
+  return filePath.endsWith('.py');
+}
 
 function parseArgs(): Partial<AigenTestConfig> & { path?: string } {
   const args = process.argv.slice(2);
@@ -43,11 +48,10 @@ function parseArgs(): Partial<AigenTestConfig> & { path?: string } {
 
 function main(): void {
   const cliConfig = parseArgs();
-  const searchDir = cliConfig.path || '.';
   const config = loadConfig(process.cwd(), cliConfig);
   const targetPath = cliConfig.path || '.';
 
-  // Register all detectors
+  // Register JS/TS detectors
   const detectors: Detector[] = [
     new AssertionStrengthDetector(),
     tautologyDetector,
@@ -57,7 +61,6 @@ function main(): void {
     readabilityDetector,
   ];
 
-  // Filter detectors by config
   const enabledDetectors = config.detectors
     ? detectors.filter((d) => config.detectors![d.id]?.enabled !== false)
     : detectors;
@@ -70,8 +73,22 @@ function main(): void {
     process.exit(0);
   }
 
-  // Run detectors on each file
-  const results = scannerResult.filePaths.map((fp) => runDetectors(fp, enabledDetectors));
+  // Separate Python and JS/TS files
+  const jsFiles = scannerResult.filePaths.filter((fp) => !isPythonFile(fp));
+  const pyFiles = scannerResult.filePaths.filter(isPythonFile);
+
+  // Run detectors
+  const results: TestFileResult[] = [];
+
+  // JS/TS files (sync)
+  for (const fp of jsFiles) {
+    results.push(runDetectors(fp, enabledDetectors));
+  }
+
+  // Python files (subprocess)
+  for (const fp of pyFiles) {
+    results.push(runPythonDetectors(fp));
+  }
 
   // Generate summary and report
   const summary = generateSummary(results, config.threshold);

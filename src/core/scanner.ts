@@ -4,6 +4,8 @@ import { ScannerResult } from './types';
 
 const TEST_FILE_PATTERNS = [
   /\.(test|spec)\.(ts|tsx|js|jsx)$/,
+  /^test_.*\.py$/,
+  /.*_test\.py$/,
 ];
 const TEST_DIR_PATTERNS = [/__tests__$/];
 const DEFAULT_IGNORE_DIRS = new Set(['node_modules', '.git', 'dist', 'coverage', '.next']);
