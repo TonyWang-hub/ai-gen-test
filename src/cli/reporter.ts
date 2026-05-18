@@ -141,7 +141,7 @@ export function generateSARIFReport(
         driver: {
           name: 'aigen-test',
           version: '0.1.0',
-          informationUri: 'https://github.com/TonyWang-hub/aigen-test',
+          informationUri: 'https://github.com/TonyWang-hub/ai-gen-test',
           rules: r.dimensions.map((d) => ({
             id: d.id,
             name: d.name,

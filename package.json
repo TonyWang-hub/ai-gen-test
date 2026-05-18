@@ -1,5 +1,5 @@
 {
-  "name": "aigen-test",
+  "name": "ai-gen-test",
   "version": "0.1.0",
   "description": "ESLint for AI-generated tests — analyze test quality across multiple dimensions",
   "bin": {
