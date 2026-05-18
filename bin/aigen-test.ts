@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import { scan } from '../src/core/scanner';
 import { runDetectors } from '../src/core/runner';
-import { Detector, AigenTestConfig } from '../src/core/types';
+import { Detector } from '../src/core/types';
+import { AigenTestConfig, loadConfig } from '../src/core/config';
 import { generateTerminalReport, generateJSONReport, generateSARIFReport, generateSummary } from '../src/cli/reporter';
 
 // Import detectors
@@ -12,20 +13,22 @@ import overMockingDetector from '../src/detectors/js/over-mocking';
 import { testSmellsDetector } from '../src/detectors/shared/test-smells';
 import { readabilityDetector } from '../src/detectors/shared/readability';
 
-function parseArgs(): AigenTestConfig {
+function parseArgs(): Partial<AigenTestConfig> & { path?: string } {
   const args = process.argv.slice(2);
-  const config: AigenTestConfig = { path: '.' };
+  const config: Partial<AigenTestConfig> & { path?: string } = {};
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--threshold' && i + 1 < args.length) {
       config.threshold = parseInt(args[++i], 10);
     } else if (args[i] === '--format' && i + 1 < args.length) {
       const val = args[++i];
-      if (val === 'terminal' || val === 'json' || val === 'sarif') {
-        config.format = val;
+      if (['terminal', 'json', 'sarif', 'html'].includes(val)) {
+        config.format = val as AigenTestConfig['format'];
       }
     } else if (args[i] === '--ignore' && i + 1 < args.length) {
       config.ignore = args[++i].split(',');
+    } else if (args[i] === '--output' && i + 1 < args.length) {
+      config.output = args[++i];
     } else if (args[i] === '--version') {
       console.log('aigen-test v0.1.0');
       process.exit(0);
@@ -38,7 +41,10 @@ function parseArgs(): AigenTestConfig {
 }
 
 function main(): void {
-  const config = parseArgs();
+  const cliConfig = parseArgs();
+  const searchDir = cliConfig.path || '.';
+  const config = loadConfig(process.cwd(), cliConfig);
+  const targetPath = cliConfig.path || '.';
 
   // Register all detectors
   const detectors: Detector[] = [
@@ -50,8 +56,13 @@ function main(): void {
     readabilityDetector,
   ];
 
+  // Filter detectors by config
+  const enabledDetectors = config.detectors
+    ? detectors.filter((d) => config.detectors![d.id]?.enabled !== false)
+    : detectors;
+
   // Scan for test files
-  const scannerResult = scan(config.path, config.ignore);
+  const scannerResult = scan(targetPath, config.ignore);
 
   if (scannerResult.total === 0) {
     console.log('No test files found.');
@@ -59,16 +70,20 @@ function main(): void {
   }
 
   // Run detectors on each file
-  const results = scannerResult.filePaths.map((fp) => runDetectors(fp, detectors));
+  const results = scannerResult.filePaths.map((fp) => runDetectors(fp, enabledDetectors));
 
   // Generate summary and report
   const summary = generateSummary(results, config.threshold);
 
   const format = config.format || 'terminal';
   if (format === 'json') {
-    console.log(generateJSONReport(results, summary));
+    const output = generateJSONReport(results, summary);
+    if (config.output) { require('fs').writeFileSync(config.output, output); }
+    else { console.log(output); }
   } else if (format === 'sarif') {
-    console.log(generateSARIFReport(results, summary));
+    const output = generateSARIFReport(results, summary);
+    if (config.output) { require('fs').writeFileSync(config.output, output); }
+    else { console.log(output); }
   } else {
     console.log(generateTerminalReport(results, summary));
   }
