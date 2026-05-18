@@ -129,3 +129,43 @@ export function generateJSONReport(
 ): string {
   return JSON.stringify({ files: results, summary }, null, 2);
 }
+
+export function generateSARIFReport(
+  results: TestFileResult[],
+  _summary: SummaryResult
+): string {
+  const runs = results
+    .filter((r) => !r.parseError)
+    .map((r) => ({
+      tool: {
+        driver: {
+          name: 'aigen-test',
+          version: '0.1.0',
+          informationUri: 'https://github.com/TonyWang-hub/aigen-test',
+          rules: r.dimensions.map((d) => ({
+            id: d.id,
+            name: d.name,
+            shortDescription: { text: `${d.name} test quality check` },
+            properties: { score: d.score, maxScore: d.maxScore },
+          })),
+        },
+      },
+      results: r.dimensions.flatMap((d) =>
+        d.findings.map((f) => ({
+          ruleId: d.id,
+          level: f.severity === 'critical' ? 'error' : f.severity === 'high' ? 'error' : f.severity === 'medium' ? 'warning' : 'note',
+          message: { text: f.suggestion ? `${f.message}. ${f.suggestion}` : f.message },
+          locations: [
+            {
+              physicalLocation: {
+                artifactLocation: { uri: r.filePath },
+                region: { startLine: f.line },
+              },
+            },
+          ],
+        }))
+      ),
+    }));
+
+  return JSON.stringify({ $schema: 'https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/Schemata/sarif-schema-2.1.0.json', version: '2.1.0', runs }, null, 2);
+}

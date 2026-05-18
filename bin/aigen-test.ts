@@ -2,7 +2,7 @@
 import { scan } from '../src/core/scanner';
 import { runDetectors } from '../src/core/runner';
 import { Detector, AigenTestConfig } from '../src/core/types';
-import { generateTerminalReport, generateJSONReport, generateSummary } from '../src/cli/reporter';
+import { generateTerminalReport, generateJSONReport, generateSARIFReport, generateSummary } from '../src/cli/reporter';
 
 // Import detectors
 import { AssertionStrengthDetector } from '../src/detectors/shared/assertion-strength';
@@ -51,7 +51,7 @@ function main(): void {
   ];
 
   // Scan for test files
-  const scannerResult = scan(config.path);
+  const scannerResult = scan(config.path, config.ignore);
 
   if (scannerResult.total === 0) {
     console.log('No test files found.');
@@ -67,6 +67,8 @@ function main(): void {
   const format = config.format || 'terminal';
   if (format === 'json') {
     console.log(generateJSONReport(results, summary));
+  } else if (format === 'sarif') {
+    console.log(generateSARIFReport(results, summary));
   } else {
     console.log(generateTerminalReport(results, summary));
   }
