@@ -14,6 +14,8 @@ import { aiPatternsDetector } from '../src/detectors/js/ai-patterns';
 import overMockingDetector from '../src/detectors/js/over-mocking';
 import { testSmellsDetector } from '../src/detectors/shared/test-smells';
 import { readabilityDetector } from '../src/detectors/shared/readability';
+import { edgeCoverageDetector } from '../src/detectors/shared/edge-coverage';
+import { mutationPredictionDetector } from '../src/detectors/shared/mutation-prediction';
 
 function isPythonFile(filePath: string): boolean {
   return filePath.endsWith('.py');
@@ -59,6 +61,8 @@ function main(): void {
     overMockingDetector,
     testSmellsDetector,
     readabilityDetector,
+    edgeCoverageDetector,
+    mutationPredictionDetector,
   ];
 
   const enabledDetectors = config.detectors
