@@ -4,6 +4,6 @@ export default defineConfig({
   test: {
     globals: true,
     include: ['tests/**/*.test.ts'],
-    exclude: ['node_modules', 'tests/fixtures/syntax-error.test.ts'],
+    exclude: ['node_modules', 'tests/fixtures/syntax-error.test.ts', 'tests/fixtures/flaky.test.ts', 'tests/fixtures/python'],
   },
 });

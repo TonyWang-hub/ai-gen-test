@@ -16,6 +16,7 @@ import { testSmellsDetector } from '../src/detectors/shared/test-smells';
 import { readabilityDetector } from '../src/detectors/shared/readability';
 import { edgeCoverageDetector } from '../src/detectors/shared/edge-coverage';
 import { mutationPredictionDetector } from '../src/detectors/shared/mutation-prediction';
+import { flakyDetector } from '../src/detectors/shared/flaky-detection';
 
 function isPythonFile(filePath: string): boolean {
   return filePath.endsWith('.py');
@@ -63,6 +64,7 @@ function main(): void {
     readabilityDetector,
     edgeCoverageDetector,
     mutationPredictionDetector,
+    flakyDetector,
   ];
 
   const enabledDetectors = config.detectors
