@@ -5,9 +5,10 @@ import { DimensionResult, Finding, Detector } from '../../core/types';
 // ---------------------------------------------------------------------------
 
 const GENERIC_NAME_PATTERNS: RegExp[] = [
-  /^test\d*$/i,   // "test", "Test", "test1", "test_123"
-  /^should\b/i,   // "should work", "should handle"
-  /^\d+$/,        // purely numeric: "1", "123"
+  /^test\d*$/i,                   // "test", "Test", "test1"
+  /^should\s*(work|pass|fail|handle|be|do|run|return|test|check)$/i,  // "should work", "should pass" (short vague only)
+  /^should\s+\w{1,4}$/i,          // "should do", "should be" (very short should-phrases)
+  /^\d+$/,                        // purely numeric: "1", "123"
 ];
 
 function isGenericTestName(name: string): boolean {
