@@ -2,6 +2,7 @@
 import { scan } from '../src/core/scanner';
 import { runDetectors } from '../src/core/runner';
 import { runPythonDetectors } from '../src/core/python-runner';
+import { runGoDetectors } from '../src/core/go-runner';
 import { Detector, TestFileResult } from '../src/core/types';
 import { AigenTestConfig, loadConfig } from '../src/core/config';
 import { generateTerminalReport, generateJSONReport, generateSARIFReport, generateSummary } from '../src/cli/reporter';
@@ -18,9 +19,8 @@ import { edgeCoverageDetector } from '../src/detectors/shared/edge-coverage';
 import { mutationPredictionDetector } from '../src/detectors/shared/mutation-prediction';
 import { flakyDetector } from '../src/detectors/shared/flaky-detection';
 
-function isPythonFile(filePath: string): boolean {
-  return filePath.endsWith('.py');
-}
+function isPythonFile(filePath: string): boolean { return filePath.endsWith('.py'); }
+function isGoFile(filePath: string): boolean { return filePath.endsWith('_test.go'); }
 
 function parseArgs(): Partial<AigenTestConfig> & { path?: string } {
   const args = process.argv.slice(2);
@@ -79,9 +79,10 @@ function main(): void {
     process.exit(0);
   }
 
-  // Separate Python and JS/TS files
-  const jsFiles = scannerResult.filePaths.filter((fp) => !isPythonFile(fp));
+  // Separate by language
+  const goFiles = scannerResult.filePaths.filter(isGoFile);
   const pyFiles = scannerResult.filePaths.filter(isPythonFile);
+  const jsFiles = scannerResult.filePaths.filter((fp) => !isPythonFile(fp) && !isGoFile(fp));
 
   // Run detectors
   const results: TestFileResult[] = [];
@@ -91,9 +92,14 @@ function main(): void {
     results.push(runDetectors(fp, enabledDetectors));
   }
 
-  // Python files (subprocess)
+  // Python files
   for (const fp of pyFiles) {
     results.push(runPythonDetectors(fp));
+  }
+
+  // Go files
+  for (const fp of goFiles) {
+    results.push(runGoDetectors(fp));
   }
 
   // Generate summary and report
