@@ -5,6 +5,7 @@ import { runPythonDetectors } from '../src/core/python-runner';
 import { runGoDetectors } from '../src/core/go-runner';
 import { Detector, TestFileResult } from '../src/core/types';
 import { AigenTestConfig, loadConfig } from '../src/core/config';
+import { saveBaseline, loadBaseline, compareToBaseline } from '../src/core/baseline';
 import { generateTerminalReport, generateJSONReport, generateSARIFReport, generateSummary } from '../src/cli/reporter';
 import { generateHTMLReport } from '../src/cli/html-reporter';
 
@@ -38,6 +39,10 @@ function parseArgs(): Partial<AigenTestConfig> & { path?: string } {
       config.ignore = args[++i].split(',');
     } else if (args[i] === '--output' && i + 1 < args.length) {
       config.output = args[++i];
+    } else if (args[i] === '--baseline') {
+      config.baseline = true;
+    } else if (args[i] === '--compare') {
+      config.compare = true;
     } else if (args[i] === '--version') {
       console.log('aigen-test v0.1.0');
       process.exit(0);
@@ -100,6 +105,21 @@ function main(): void {
   // Go files
   for (const fp of goFiles) {
     results.push(runGoDetectors(fp));
+  }
+
+  // Baseline / compare mode
+  if (config.baseline) {
+    saveBaseline(process.cwd(), results);
+    return;
+  }
+  if (config.compare) {
+    const baseline = loadBaseline(process.cwd());
+    if (baseline) {
+      console.log(compareToBaseline(results, baseline));
+    } else {
+      console.log('No baseline found. Run with --baseline first.');
+    }
+    return;
   }
 
   // Generate summary and report

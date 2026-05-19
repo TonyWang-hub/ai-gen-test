@@ -6,6 +6,8 @@ export interface AigenTestConfig {
   format?: 'terminal' | 'json' | 'sarif' | 'html';
   ignore?: string[];
   output?: string;
+  baseline?: boolean;
+  compare?: boolean;
   detectors?: {
     [key: string]: { enabled: boolean };
   };
@@ -66,6 +68,8 @@ export function loadConfig(cwd: string, cliConfig: Partial<AigenTestConfig>): Ai
   if (cliConfig.ignore) merged.ignore = cliConfig.ignore;
   if (cliConfig.format) merged.format = cliConfig.format;
   if (cliConfig.output) merged.output = cliConfig.output;
+  if (cliConfig.baseline !== undefined) merged.baseline = cliConfig.baseline;
+  if (cliConfig.compare !== undefined) merged.compare = cliConfig.compare;
 
   return merged;
 }
